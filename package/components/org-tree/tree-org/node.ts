@@ -1,30 +1,27 @@
-// import {VNode} from 'vue';
-//
-// const EVENTS = {
-//     CLICK: 'on-node-click',
-//     DBLCLICK: 'on-node-dblclick',
-//     CONTEXTMENU: 'on-node-contextmenu',
-//     MOUSEENTER: 'on-node-mouseenter',
-//     MOUSELEAVE: 'on-node-mouseleave'
-// };
-//
-// function createListener(handler, data) {
-//     if (typeof handler === 'function') {
-//         return function (e) {
-//             if (e.target.className.indexOf('org-tree-node-btn') > -1) return;
-//
-//             handler.apply(null, [e, data]);
-//         };
-//     }
-// }
-// // 判断是否叶子节点
-// const isLeaf = (data, prop) => {
-//     return !(Array.isArray(data[prop]) && data[prop].length > 0);
-// };
-//
-// // 创建 node 节点
-//
-// // 创建展开折叠按钮
+import {h} from 'vue';
+
+const EVENTS = {
+    CLICK: 'on-node-click',
+    DBLCLICK: 'on-node-dblclick',
+    CONTEXTMENU: 'on-node-contextmenu',
+    MOUSEENTER: 'on-node-mouseenter',
+    MOUSELEAVE: 'on-node-mouseleave'
+};
+
+function createListener(handler: any, data: any) {
+    if (typeof handler === 'function') {
+        return function (e: any) {
+            if (e.target.className.indexOf('org-tree-node-btn') > -1) return;
+            handler.apply(null, [e, data]);
+        };
+    }
+}
+// 判断是否叶子节点
+const isLeaf = (data: any, prop: any) => {
+    return !(Array.isArray(data[prop]) && data[prop].length > 0);
+};
+
+// 创建展开折叠按钮
 // export const renderBtn = (h, data, context) => {
 //     const {props, listeners} = context;
 //     const expandHandler = listeners['on-expand'];
@@ -51,8 +48,8 @@
 //         children
 //     );
 // };
-//
-// // 创建 label 节点
+
+// 创建 label 节点
 // export const renderLabel = (props: any, context, root) => {
 //     const {props, listeners} = context;
 //     const label = data[props.props.label];
@@ -164,8 +161,8 @@
 //         ]
 //     );
 // };
-//
-// // 创建 node 子节点
+
+// 创建 node 子节点
 // export const renderChildren = (h, list, context) => {
 //     if (Array.isArray(list) && list.length) {
 //         const children = list.map(item => {
@@ -182,47 +179,50 @@
 //     }
 //     return '';
 // };
-//
-// export const render = (props: any, context: object) => {
-//     props.data.root = true;
-//     return renderNode(props, context, true);
-// };
-//
-// export const renderNode = (props: any, context: object, root: boolean): VNode => {
-//     const data = props.data;
-//     const cls = ['tree-org-node'];
-//     const childNodes = [];
-//     const children = data[props.props.children];
-//     // 如果是叶子节点则追加leaf事件
-//     if (isLeaf(data, props.props.children)) {
-//         cls.push('is-leaf');
-//     } else if (props.collapsable && !data[props.props.expand]) {
-//         // 追加是否展开class
-//         cls.push('collapsed');
-//     }
-//     if (data.moving) {
-//         cls.push('tree-org-node__moving');
-//     }
-//     // 渲染label块
-//     childNodes.push(renderLabel(props, context, root));
-//
-//     if (!props.collapsable || data[props.props.expand]) {
-//         childNodes.push(renderChildren(h, children, context));
-//     }
-//     return h(
-//         'div',
-//         {
-//             class: cls,
-//             key: data[props.props.id],
-//             directives: [
-//                 {
-//                     name: 'show',
-//                     value: !data.hidden
-//                 }
-//             ]
-//         },
-//         childNodes
-//     );
-// };
-//
-// export default render;
+
+export const render = (props: any, context: object) => {
+    props.data = {
+        root: true,
+        ...props.data
+    };
+    return renderNode(props, context, true);
+};
+
+export const renderNode = (props: any, context: object, root: boolean) => {
+    const data = props.data;
+    const cls = ['tree-org-node'];
+    const childNodes: any = [];
+    const children = data[props.children];
+    // 如果是叶子节点则追加leaf事件
+    if (isLeaf(data, props.children)) {
+        cls.push('is-leaf');
+    } else if (props.collapsable && !data[props.expand]) {
+        // 追加是否展开class
+        cls.push('collapsed');
+    }
+    if (data.moving) {
+        cls.push('tree-org-node__moving');
+    }
+    // 渲染label块
+    // childNodes.push(renderLabel(props, context, root));
+    //
+    // if (!props.collapsable || data[props.props.expand]) {
+    //     childNodes.push(renderChildren(h, children, context));
+    // }
+    return h(
+        'div',
+        {
+            class: cls,
+            key: data[props.id],
+            directives: [
+                {
+                    name: 'show',
+                    value: !data.hidden
+                }
+            ]
+        },
+        childNodes
+    );
+};
+
+export default render;

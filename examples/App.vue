@@ -1,6 +1,6 @@
 <template>
     <p>msg="Welcome to Your Vue.js + TypeScript App"</p>
-    <div style="height: 400px; border: 10px solid #eee">
+    <div style="height: 500px; border: 10px solid #eee">
         <TreeOrg> </TreeOrg>
     </div>
 </template>

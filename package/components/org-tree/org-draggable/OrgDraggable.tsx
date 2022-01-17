@@ -1,5 +1,5 @@
-import {computed, defineComponent, onMounted, PropType, reactive, ref, toRaw, toRef, toRefs} from 'vue';
-import {addEvent, getComputedSize, matchesSelectorToParentElements, removeEvent} from '../../../utils/dom';
+import {computed, defineComponent, onMounted, PropType, reactive, ref} from 'vue';
+import {addEvent, removeEvent} from '../../../utils/dom';
 import {restrictToBounds, snapToGrid} from '../../../utils/fns';
 import {DraggableProps} from '../../../type';
 
@@ -33,7 +33,7 @@ const userSelectAuto = {
 let eventsFor = events.mouse;
 
 export default defineComponent({
-    name: 'org-draggable',
+    name: 'OrgDraggable',
     props: {
         className: {
             type: String,
@@ -152,7 +152,7 @@ export default defineComponent({
     },
 
     setup(props, {attrs, slots, emit}) {
-        const root = ref(null);
+        const node = ref();
         const data: DraggableProps = reactive({
             left: props.x,
             top: props.y,
@@ -216,15 +216,12 @@ export default defineComponent({
             if (props.enableNativeDrag === true) {
                 ondragstart.value = () => false;
             }
-            const [parentWidth, parentHeight] = getParentSize();
+            const [parentWidth, parentHeight] = getParentSize.value;
             data.parentWidth = parentWidth;
             data.parentHeight = parentHeight;
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // const [width, height] = [root.value.offsetHeight, root.value.offsetWidth];
-            // const [width, height] = ['auto', 'auto'];
-            const width = 100;
-            const height = 100;
+            const rootEl = node.value;
+            const width = rootEl.clientWidth;
+            const height = rootEl.clientHeight;
             data.aspectFactor = (props.w !== 'auto' ? (props.w as number) : width) / (props.h !== 'auto' ? (props.h as number) : height);
 
             data.width = props.w !== 'auto' ? (props.w as number) : width;
@@ -304,16 +301,17 @@ export default defineComponent({
 
         const checkParentSize = () => {
             if (props.parent) {
-                const [newParentWidth, newParentHeight] = getParentSize();
+                const [newParentWidth, newParentHeight] = getParentSize.value;
                 data.parentWidth = newParentWidth;
                 data.parentHeight = newParentHeight;
             }
         };
 
-        const getParentSize = (): [number, number] => {
-            // todo 获取父级大小
-            return [0, 0];
-        };
+        const getParentSize = computed((): [number, number] => {
+            const curNode = node.value;
+            const parentNode = curNode.parentNode;
+            return [parentNode.clientWidth, parentNode.clientHeight];
+        });
 
         const elementTouchDown = (e: any) => {
             eventsFor = events.touch;
@@ -414,10 +412,9 @@ export default defineComponent({
         return () => {
             const {classNameActive, classNameDragging, classNameDraggable, draggable} = props;
             const {enabled, dragging} = data;
-
             return (
                 <div
-                    ref={root}
+                    ref={node}
                     class={{
                         [classNameActive]: enabled,
                         [classNameDragging]: dragging,
@@ -427,7 +424,7 @@ export default defineComponent({
                     onMousedown={elementMouseDown}
                     onTouchstart={elementTouchDown}
                 >
-                    <p>jhhhh</p>
+                    {slots.default ? slots.default() : 'foo'}
                 </div>
             );
         };
