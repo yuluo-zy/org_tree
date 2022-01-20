@@ -181,10 +181,7 @@ const isLeaf = (data: any, prop: any) => {
 // };
 
 export const render = (props: any, context: object) => {
-    props.data = {
-        root: true,
-        ...props.data
-    };
+    props.data['root'] = true;
     return renderNode(props, context, true);
 };
 
@@ -208,7 +205,7 @@ export const renderNode = (props: any, context: object, root: boolean) => {
     //
     // if (!props.collapsable || data[props.props.expand]) {
     //     childNodes.push(renderChildren(h, children, context));
-    // }
+    // }z
     return h(
         'div',
         {

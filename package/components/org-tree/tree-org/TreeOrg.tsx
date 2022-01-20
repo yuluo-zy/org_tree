@@ -275,8 +275,7 @@ export default defineComponent({
                         >
                             {/*class={{horizontal: props.horizontal, collapsable: props.collapsable}}*/}
                             <div ref="tree-item" class="tree-org">
-                                <TreeOrgNode>
-                                    {/*:data="data"*/}
+                                <TreeOrgNode data={props.data}>
                                     {/*:props="keys"*/}
                                     {/*:horizontal="horizontal"*/}
                                     {/*:label-style="labelStyle"*/}
