@@ -3,6 +3,7 @@ import '../../../styles/index.less';
 import {ToolsProps, Recordable} from '../../../type';
 import OrgDraggable from '../org-draggable/OrgDraggable';
 import TreeOrgNode from './node';
+import nodedrag from '../../../directives/drag';
 
 export default defineComponent({
     name: 'tree-org',
@@ -31,6 +32,11 @@ export default defineComponent({
         nodeDragEnd: Function,
         horizontal: Boolean,
         collapsable: Boolean
+    },
+
+    directives: {
+        // 自定义指令
+        nodedrag: nodedrag
     },
     setup(props, {emit}) {
         const container = ref();
@@ -256,8 +262,27 @@ export default defineComponent({
             }
         };
 
-        const slots = {
-            default: () => <div>A</div>
+        // const slots = {
+        //     default: () => <div>A</div>
+        // };
+
+        const handleExpand = (e: any, data: any) => {
+            e.stopPropagation();
+            const el = document.querySelector('.is-root');
+            // const left = el.offsetLeft;
+            // const top = el.offsetTop;
+            // if ("expand" in data) {
+            //     data.expand = !data.expand;
+            //     if (!data.expand && data.children) {
+            //         this.collapse(data.children);
+            //     }
+            // } else {
+            //     this.$set(data, "expand", true);
+            // }
+            // this.$nextTick(() => {
+            //     this.autoDrag(el, left, top);
+            // });
+            // this.$emit('on-expand', e, data)
         };
 
         return () => {
@@ -275,7 +300,7 @@ export default defineComponent({
                         >
                             {/*class={{horizontal: props.horizontal, collapsable: props.collapsable}}*/}
                             <div ref="tree-item" class="tree-org">
-                                <TreeOrgNode data={props.data}>
+                                <TreeOrgNode v-nodedrag_l_t={nodeargs} data={props.data} on-expand={handleExpand} on-node-click={handleExpand}>
                                     {/*:props="keys"*/}
                                     {/*:horizontal="horizontal"*/}
                                     {/*:label-style="labelStyle"*/}
@@ -283,8 +308,7 @@ export default defineComponent({
                                     {/*:render-content="renderContent"*/}
                                     {/*:label-class-name="labelClassName"*/}
                                     {/*v-nodedrag.l.t="nodeargs"*/}
-                                    {/*@on-expand="handleExpand"*/}
-                                    {/*@on-node-click="handleClick"*/}
+
                                     {/*@on-node-dblclick="handleDblclick"*/}
                                     {/*@on-node-mouseenter="nodeMouseenter"*/}
                                     {/*@on-node-mouseleave="nodeMouseleave"*/}

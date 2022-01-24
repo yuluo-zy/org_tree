@@ -1,12 +1,29 @@
 <template>
     <p>msg="Welcome to Your Vue.js + TypeScript App"</p>
     <div style="height: 500px; border: 10px solid #eee">
-        <TreeOrg :data="{data}"></TreeOrg>
+        <TreeOrg
+            :data="data"
+            :disabled="info.disaled"
+            :horizontal="info.horizontal"
+            :collapsable="info.collapsable"
+            :label-style="info.style"
+            :node-draggable="true"
+            :only-one-node="info.onlyOneNode"
+            :clone-node-drag="info.cloneNodeDrag"
+            :node-draging="nodeDragMove"
+            :node-drag-end="nodeDragEnd"
+            @on-contextmenu="onMenus"
+            @on-expand="onMenus"
+            @on-node-click="onMenus"
+            @on-node-dblclick="onMenus"
+            @on-node-copy="onMenus"
+        >
+        </TreeOrg>
     </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, reactive} from 'vue';
 import TreeOrg from '../package/components/org-tree/tree-org/TreeOrg';
 
 export default defineComponent({
@@ -81,8 +98,51 @@ export default defineComponent({
                 }
             ]
         };
+        const nodeDragMove = (data: any) => {
+            console.log(data);
+        };
+        const nodeDragEnd = (data: any, isSelf: any) => {
+            console.log(data, isSelf);
+            isSelf && console.info('移动到自身');
+        };
+        const onMenus = ({node, command}: any) => {
+            console.log(node, command);
+        };
+        const info = reactive({
+            horizontal: false,
+            collapsable: true,
+            onlyOneNode: true,
+            cloneNodeDrag: true,
+            expandAll: true,
+            disaled: false,
+            style: {
+                background: '#fff',
+                color: '#5e6d82'
+            }
+        });
+
+        const toggleExpand = (data: any, val: any) => {
+            if (Array.isArray(data)) {
+                data.forEach(item => {
+                    item['expand'] = val;
+                    if (item.children) {
+                        toggleExpand(item.children, val);
+                    }
+                });
+            } else {
+                data['expand'] = val;
+                if (data.children) {
+                    toggleExpand(data.children, val);
+                }
+            }
+        };
+
         return {
-            data
+            data,
+            info,
+            nodeDragMove,
+            nodeDragEnd,
+            onMenus
         };
     }
 });

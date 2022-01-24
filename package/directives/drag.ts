@@ -1,6 +1,7 @@
-import {isObject} from '@/utils/utils';
+import {isObject} from '../utils/fns';
+import {DirectiveBinding, VNode} from 'vue';
 // 递归遍历处理数据
-const recurseData = function (data, keys, cb) {
+const recurseData = function (data: any, keys: any, cb: any) {
     const {children} = keys;
     if (isObject(data)) {
         fn(data);
@@ -9,7 +10,8 @@ const recurseData = function (data, keys, cb) {
             fn(data[i]);
         }
     }
-    function fn(obj) {
+
+    function fn(obj: any) {
         cb(obj);
         if (Array.isArray(obj[children])) {
             const list = obj[children];
@@ -20,7 +22,7 @@ const recurseData = function (data, keys, cb) {
     }
 };
 // 获取父级节点
-const getNodeById = function (node, keys, value) {
+const getNodeById = function (node: any, keys: any, value: any) {
     const {id, children} = keys;
     if (node[id] === value) {
         return node;
@@ -28,15 +30,15 @@ const getNodeById = function (node, keys, value) {
         const list = node[children];
         for (let i = 0, len = list.length; i < len; i++) {
             const row = list[i];
-            const pNode = getNodeById(row, keys, value);
+            const pNode: any = getNodeById(row, keys, value);
             if (pNode) {
                 return pNode;
             }
         }
     }
 };
-//移除节点
-const removeNode = function (node, context) {
+// //移除节点
+const removeNode = function (node: any, context: any) {
     const {keys, data, onlyOneNode} = context;
     const {id, pid, children} = keys;
     const oldPaNode = getNodeById(data, keys, node[pid]);
@@ -53,14 +55,14 @@ const removeNode = function (node, context) {
     const childNodes = node[children];
     if (onlyOneNode && index !== undefined && childNodes) {
         node[children] = [];
-        childNodes.forEach(it => {
+        childNodes.forEach((it: any) => {
             it[pid] = oldPaNode[id];
         });
         oldPaNode[children].splice(index, 0, ...childNodes);
     }
 };
 //新增子节点节点
-const addChildNode = function (node, context) {
+const addChildNode = function (node: any, context: any) {
     const {parenNode, onlyOneNode, cloneNodeDrag} = context;
     if (parenNode) {
         const {keys} = context;
@@ -76,7 +78,7 @@ const addChildNode = function (node, context) {
             parenNode.children ? parenNode.children.push(nodeClone) : (parenNode.children = [].concat(nodeClone));
         } else {
             // 如果拷贝并拖拽节点
-            recurseData(nodeClone, keys, function (item) {
+            recurseData(nodeClone, keys, function (item: any) {
                 if (typeof item[id] === 'string' && item[id].indexOf('clone-node') != -1) {
                     item[id] = `clone-node-${item[id]}`;
                 }
@@ -91,34 +93,37 @@ const addChildNode = function (node, context) {
     }
 };
 export default {
-    bind(el, {modifiers, value}, vnode) {
+    beforeMount(el: any, binding: DirectiveBinding, vnode: VNode) {
+        const {modifiers, value} = binding;
         const {l, t} = modifiers;
         const {drag, node, handleStart, handleMove, handleEnd} = value;
         el.addEventListener('mousedown', handleDownCb);
         let offsetLeft = 0,
             hasRender = false;
-        let cloneTree = null;
+        let cloneTree: any = null;
         let screenX = 0,
             screenY = 0;
-        function initData(e) {
+
+        function initData(e: any) {
             // 初始化拖动数据
             screenX = e.screenX;
             screenY = e.screenY;
             offsetLeft = 0;
-            const {context} = vnode;
-            context.contextmenu = false; // 隐藏右键菜单
-            const {keys, onlyOneNode} = context;
-            if (onlyOneNode) {
-                // 如果是仅移动当前节点
-                const {children} = keys;
-                const cloneNode = {...node};
-                cloneNode[children] = [];
-                context.cloneData = cloneNode;
-            } else {
-                context.cloneData = node;
-            }
+            // const {context} = vnode;
+            // context.contextmenu = false; // 隐藏右键菜单
+            // const {keys, onlyOneNode} = context;
+            // if (onlyOneNode) {
+            //     // 如果是仅移动当前节点
+            //     const {children} = keys;
+            //     const cloneNode = {...node};
+            //     cloneNode[children] = [];
+            //     context.cloneData = cloneNode;
+            // } else {
+            //     context.cloneData = node;
+            // }
         }
-        function handleDownCb(e) {
+
+        function handleDownCb(e: any) {
             e.stopPropagation();
             if (drag === false || e.button != 0 || node.focused || node.noDragging || e.target.className.indexOf('tree-org-node-btn') > -1) {
                 return false;
@@ -128,9 +133,10 @@ export default {
             document.addEventListener('mouseup', handleUpCb);
             handleEmit('start');
         }
-        function moveStart(e) {
-            const {context} = vnode;
-            context.nodeMoving = true;
+
+        function moveStart(e: any) {
+            // const {context} = vnode;
+            // context.nodeMoving = true;
             node.moving = true;
             let ndom = el;
             while (!ndom.classList.contains('tree-org-node')) {
@@ -145,7 +151,8 @@ export default {
             cloneTree.style.left = e.clientX - offsetLeft + 'px';
             cloneTree.style.top = e.clientY + 2 + 'px';
         }
-        function handleMoveCb(e) {
+
+        function handleMoveCb(e: any) {
             e.preventDefault();
             if (Math.abs(e.screenX - screenX) < 5 && Math.abs(e.screenY - screenY) < 5) {
                 return false;
@@ -172,7 +179,8 @@ export default {
                 return;
             }
         }
-        function handleUpCb(e) {
+
+        function handleUpCb(e: any) {
             document.removeEventListener('mousemove', handleMoveCb);
             document.removeEventListener('mouseup', handleUpCb);
             if (!hasRender) {
@@ -181,16 +189,17 @@ export default {
             hasRender = false;
             cloneTree = null;
             node.moving = false;
-            vnode.context.nodeMoving = false;
-            const movingNode = document.querySelector('.tree-org-node__moving');
+            // vnode.context.nodeMoving = false;
+            const movingNode: any = document.querySelector('.tree-org-node__moving');
             if (movingNode.contains(e.target)) {
                 handleEmit('end', true);
                 return false;
             }
-            addChildNode(node, vnode.context);
+            // addChildNode(node, vnode.context);
             handleEmit('end', false);
         }
-        function handleEmit(type, isSelf) {
+
+        function handleEmit(type: any, isSelf?: any) {
             if (type === 'start') {
                 typeof handleStart === 'function' && handleStart(node);
                 return;
