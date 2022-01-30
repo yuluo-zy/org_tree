@@ -7,7 +7,7 @@ export interface DraggableProps {
     height: number;
     widthTouched: boolean;
     heightTouched: boolean;
-    aspectFactor: number | string;
+    aspectFactor: number | string | undefined;
     parentWidth: number;
     parentHeight: number;
     dragging: boolean;

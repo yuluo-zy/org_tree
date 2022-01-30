@@ -125,9 +125,9 @@ export default {
 
         function handleDownCb(e: any) {
             e.stopPropagation();
-            if (drag === false || e.button != 0 || node.focused || node.noDragging || e.target.className.indexOf('tree-org-node-btn') > -1) {
-                return false;
-            }
+            // if (drag === false || e.button != 0 || node.focused || node.noDragging || e.target.className.indexOf('tree-org-node-btn') > -1) {
+            return false;
+            // }
             initData(e);
             document.addEventListener('mousemove', handleMoveCb);
             document.addEventListener('mouseup', handleUpCb);

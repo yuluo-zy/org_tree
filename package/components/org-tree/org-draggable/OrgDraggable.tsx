@@ -1,5 +1,5 @@
-import {computed, defineComponent, onMounted, PropType, reactive, ref} from 'vue';
-import {addEvent, removeEvent} from '../../../utils/dom';
+import {computed, defineComponent, onMounted, PropType, reactive, ref, watch} from 'vue';
+import {addEvent, matchesSelectorToParentElements, removeEvent} from '../../../utils/dom';
 import {restrictToBounds, snapToGrid} from '../../../utils/fns';
 import {DraggableProps} from '../../../type';
 
@@ -133,7 +133,7 @@ export default defineComponent({
         },
         parent: {
             type: Boolean as PropType<boolean>,
-            default: false
+            default: true
         },
         parentNode: null,
         scale: {
@@ -151,11 +151,9 @@ export default defineComponent({
         }
     },
 
-    setup(props, {attrs, slots, emit}) {
+    setup: function (props, {attrs, slots, emit}) {
         const node = ref();
         const data: DraggableProps = reactive({
-            left: props.x,
-            top: props.y,
             right: 0,
             bottom: 0,
             width: 0,
@@ -166,6 +164,8 @@ export default defineComponent({
             parentWidth: 0,
             parentHeight: 0,
             dragging: false,
+            left: props.x,
+            top: props.y,
             enabled: props.active,
             zIndex: props.z
         });
@@ -183,31 +183,32 @@ export default defineComponent({
             bottom: 0
         });
         const bounds = reactive({
-            minLeft: null,
-            maxLeft: null,
-            minRight: null,
-            maxRight: null,
-            minTop: null,
-            maxTop: null,
-            minBottom: null,
-            maxBottom: null
+            minLeft: 0,
+            maxLeft: 0,
+            minRight: 0,
+            maxRight: 0,
+            minTop: 0,
+            maxTop: 0,
+            minBottom: 0,
+            maxBottom: 0
         });
 
         const resetBoundsAndMouseState = () => {
+            console.log('resetBoundsAndMouseState');
             mouseClickPosition.x = 0;
             mouseClickPosition.y = 0;
             mouseClickPosition.w = 0;
             mouseClickPosition.h = 0;
             mouseClickPosition.mouseX = 0;
             mouseClickPosition.mouseY = 0;
-            bounds.minLeft = null;
-            bounds.maxLeft = null;
-            bounds.minRight = null;
-            bounds.maxRight = null;
-            bounds.minTop = null;
-            bounds.maxTop = null;
-            bounds.minBottom = null;
-            bounds.maxBottom = null;
+            bounds.minLeft = 0;
+            bounds.maxLeft = 0;
+            bounds.minRight = 0;
+            bounds.maxRight = 0;
+            bounds.minTop = 0;
+            bounds.maxTop = 0;
+            bounds.minBottom = 0;
+            bounds.maxBottom = 0;
         };
 
         const ondragstart = ref(props.onDragStart);
@@ -235,7 +236,8 @@ export default defineComponent({
             addEvent(window, 'resize', checkParentSize);
         });
 
-        const beforeUnmount = () => {
+        const onBeforeUnmount = () => {
+            // 卸载 事件
             removeEvent(document.documentElement, 'mousedown', deselect);
             removeEvent(document.documentElement, 'touchstart', handleUp);
             removeEvent(document.documentElement, 'mousemove', move);
@@ -244,59 +246,6 @@ export default defineComponent({
             removeEvent(document.documentElement, 'touchend touchcancel', deselect);
 
             removeEvent(window, 'resize', checkParentSize);
-        };
-
-        const deselect = (e: any) => {
-            const target = e.target;
-            // if (!this.$el.contains(target)) {
-            //     if (data.enabled && !props.preventDeactivation) {
-            //         data.enabled = false;
-            //
-            //         emit('deactivated');
-            //         emit('update:active', false);
-            //     }
-            // }
-            resetBoundsAndMouseState();
-        };
-        const handleUp = () => {
-            resetBoundsAndMouseState();
-            if (data.dragging) {
-                data.dragging = false;
-                emit('dragstop', data.left, data.top);
-            }
-        };
-
-        const move = (e: any) => {
-            if (data.dragging) {
-                handleDrag(e);
-            }
-        };
-
-        const handleDrag = (e: any) => {
-            const axis = props.axis;
-            const grid = props.grid;
-            const bound = bounds;
-
-            const tmpDeltaX = axis && axis !== 'y' ? mouseClickPosition.mouseX - (e.touches ? e.touches[0].pageX : e.pageX) : 0;
-            const tmpDeltaY = axis && axis !== 'x' ? mouseClickPosition.mouseY - (e.touches ? e.touches[0].pageY : e.pageY) : 0;
-
-            const [deltaX, deltaY] = snapToGrid(grid, tmpDeltaX, tmpDeltaY, props.scale);
-
-            const left = restrictToBounds(mouseClickPosition.left - deltaX, bound.minLeft, bound.maxLeft);
-            const top = restrictToBounds(mouseClickPosition.top - deltaY, bound.minTop, bound.maxTop);
-
-            if (props.onDrag(left, top) === false) {
-                return;
-            }
-
-            const right = restrictToBounds(mouseClickPosition.right + deltaX, bound.minRight, bound.maxRight);
-            const bottom = restrictToBounds(mouseClickPosition.bottom + deltaY, bound.minBottom, bound.maxBottom);
-
-            data.left = left;
-            data.top = top;
-            data.right = right;
-            data.bottom = bottom;
-            emit('dragging', data.left, data.top);
         };
 
         const checkParentSize = () => {
@@ -313,75 +262,139 @@ export default defineComponent({
             return [parentNode.clientWidth, parentNode.clientHeight];
         });
 
+        // 触摸开始
         const elementTouchDown = (e: any) => {
+            console.log('touch move');
             eventsFor = events.touch;
             elementDown(e);
         };
-
+        // 鼠标开始
         const elementMouseDown = (e: any) => {
+            console.log('mouse move');
             eventsFor = events.mouse;
             elementDown(e);
         };
 
-        const elementDown = (e: any) => {
-            if (e instanceof MouseEvent && e.button !== 1) {
+        const deselect = (e: any) => {
+            // const target = e.target;
+            // if (!this.$el.contains(target)) {
+            // console.log('deselect');
+            // // todo 选择 在 本盒子里面做点击事件
+            // if (data.enabled && !props.preventDeactivation) {
+            //     data.enabled = false;
+            //     emit('deactivated');
+            //     emit('update:active', false);
+            // }
+            // // }
+            resetBoundsAndMouseState();
+        };
+        const handleUp = () => {
+            // 鼠标释放
+            console.log('鼠标释放');
+            resetBoundsAndMouseState();
+            if (data.dragging) {
+                data.dragging = false;
+                emit('on-dragstop', data.left, data.top);
+            }
+        };
+
+        const move = (e: any) => {
+            if (data.dragging) {
+                handleDrag(e);
+            }
+        };
+
+        const handleDrag = (e: any) => {
+            const axis = props.axis;
+            const grid = props.grid;
+
+            const tmpDeltaX = axis && axis !== 'y' ? mouseClickPosition.mouseX - (e.touches ? e.touches[0].pageX : e.pageX) : 0;
+            const tmpDeltaY = axis && axis !== 'x' ? mouseClickPosition.mouseY - (e.touches ? e.touches[0].pageY : e.pageY) : 0;
+            const [deltaX, deltaY] = snapToGrid(grid, tmpDeltaX, tmpDeltaY, props.scale);
+            const left = restrictToBounds(mouseClickPosition.left - deltaX, bounds.minLeft, bounds.maxLeft);
+            const top = restrictToBounds(mouseClickPosition.top - deltaY, bounds.minTop, bounds.maxTop);
+            // console.log('top', mouseClickPosition.top - deltaY, bounds.minTop, bounds.maxTop);
+            if (props.onDrag(left, top) === false) {
                 return;
             }
 
-            const target = e.target;
+            const right = restrictToBounds(mouseClickPosition.right + deltaX, bounds.minRight, bounds.maxRight);
+            const bottom = restrictToBounds(mouseClickPosition.bottom + deltaY, bounds.minBottom, bounds.maxBottom);
+            console.log('bot', mouseClickPosition.bottom + deltaY, bounds.minBottom, bounds.maxBottom);
+            data.left = left;
+            data.top = top;
+            data.right = right;
+            data.bottom = bottom;
+            emit('on-dragging', data.left, data.top);
+        };
 
-            // if (this.$el.contains(target)) {
-            //     if (props.onDragStart(e) === false) {
-            //         return;
-            //     }
-            //
-            //     if (
-            //         (props.dragHandle && !matchesSelectorToParentElements(target, props.dragHandle, this.$el)) ||
-            //         (props.dragCancel && matchesSelectorToParentElements(target, props.dragCancel, this.$el))
-            //     ) {
-            //         data.dragging = false;
-            //
-            //         return;
-            //     }
-            //
-            //     if (!data.enabled) {
-            //         data.enabled = true;
-            //
-            //         emit('activated');
-            //         emit('update:active', true);
-            //     }
-            //
-            //     if (props.draggable) {
-            //         data.dragging = true;
-            //     }
-            //
-            //     mouseClickPosition.mouseX = e.touches ? e.touches[0].pageX : e.pageX;
-            //     mouseClickPosition.mouseY = e.touches ? e.touches[0].pageY : e.pageY;
-            //
-            //     mouseClickPosition.left = data.left;
-            //     mouseClickPosition.right = data.right;
-            //     mouseClickPosition.top = data.top;
-            //     mouseClickPosition.bottom = data.bottom;
-            //
-            //     if (props.parent) {
-            //         Object.assign(bounds, {...calcDragLimits()});
-            //     }
-            //
-            //     addEvent(document.documentElement, eventsFor.move, move);
-            //     addEvent(document.documentElement, eventsFor.stop, handleUp);
-            // }
+        const elementDown = (e: any) => {
+            if (e instanceof MouseEvent && e.button !== 0) {
+                return;
+            }
+            console.info('MouseEvent');
+
+            const target = e.target;
+            if (props.onDragStart(e) === false) {
+                return;
+            }
+
+            if (
+                (props.dragHandle && !matchesSelectorToParentElements(target, props.dragHandle, node.value)) ||
+                (props.dragCancel && matchesSelectorToParentElements(target, props.dragCancel, node.value))
+            ) {
+                data.dragging = false;
+                return;
+            }
+
+            if (!data.enabled) {
+                data.enabled = true;
+
+                emit('activated');
+                emit('update:active', true);
+            }
+
+            if (props.draggable) {
+                data.dragging = true;
+            }
+
+            mouseClickPosition.mouseX = e.touches ? e.touches[0].pageX : e.pageX;
+            mouseClickPosition.mouseY = e.touches ? e.touches[0].pageY : e.pageY;
+
+            mouseClickPosition.left = data.left;
+            mouseClickPosition.right = data.right;
+            mouseClickPosition.top = data.top;
+            mouseClickPosition.bottom = data.bottom;
+
+            if (props.parent) {
+                console.log(props.parent);
+                // todo 优化这里的赋值函数
+                const {minLeft, maxLeft, minTop, maxTop, minRight, maxRight, minBottom, maxBottom} = calcDragLimits();
+                bounds.maxLeft = maxLeft;
+                bounds.minLeft = minLeft;
+                bounds.maxRight = maxRight;
+                bounds.minRight = minRight;
+                bounds.maxTop = maxTop;
+                bounds.minTop = minTop;
+                bounds.maxBottom = maxBottom;
+                bounds.minBottom = minBottom;
+                console.log(bounds.maxLeft, bounds.minLeft, bounds.maxTop, bounds.minTop);
+            }
+
+            addEvent(document.documentElement, eventsFor.move, move);
+            addEvent(document.documentElement, eventsFor.stop, handleUp);
         };
 
         const calcDragLimits = () => {
             return {
-                minLeft: data.left % props.grid[0],
-                maxLeft: Math.floor((data.parentWidth - data.width - data.left) / props.grid[0]) * props.grid[0] + data.left,
-                minRight: data.right % props.grid[0],
-                maxRight: Math.floor((data.parentWidth - data.width - data.right) / props.grid[0]) * props.grid[0] + data.right,
-                minTop: data.top % props.grid[1],
-                maxTop: Math.floor((data.parentHeight - data.height - data.top) / props.grid[1]) * props.grid[1] + data.top,
-                minBottom: data.bottom % props.grid[1],
-                maxBottom: Math.floor((data.parentHeight - data.height - data.bottom) / props.grid[1]) * props.grid[1] + data.bottom
+                minLeft: -data.parentWidth * 0.5,
+                maxLeft: data.parentWidth * 0.5,
+                minRight: -data.parentWidth * 0.5,
+                maxRight: data.parentWidth * 0.5,
+                minTop: 0,
+                maxTop: data.parentHeight * 0.9,
+                minBottom: -data.parentHeight * 0.5,
+                maxBottom: data.parentHeight
             };
         };
 
@@ -409,8 +422,86 @@ export default defineComponent({
             };
         });
 
+        watch(
+            () => props.active,
+            () => {
+                data.enabled = props.active;
+                if (data.enabled) {
+                    emit('activated');
+                } else {
+                    emit('deactivated');
+                }
+            }
+        );
+
+        watch(
+            () => props.z,
+            value => {
+                if (value >= 0 || value === 'auto') {
+                    data.zIndex = value;
+                }
+            }
+        );
+
+        watch(
+            () => props.x,
+            value => {
+                if (data.dragging) {
+                    return;
+                }
+
+                if (props.parent) {
+                    const {minLeft, maxLeft, minTop, maxTop, minRight, maxRight, minBottom, maxBottom} = calcDragLimits();
+                    bounds.maxLeft = maxLeft;
+                    bounds.minLeft = minLeft;
+                    bounds.maxRight = maxRight;
+                    bounds.minRight = minRight;
+                    bounds.maxTop = maxTop;
+                    bounds.minTop = minTop;
+                    bounds.maxBottom = maxBottom;
+                    bounds.minBottom = minBottom;
+                }
+
+                moveHorizontally(value);
+            }
+        );
+
+        watch(
+            () => props.y,
+            value => {
+                if (data.dragging) {
+                    return;
+                }
+
+                if (props.parent) {
+                    const {minLeft, maxLeft, minTop, maxTop, minRight, maxRight, minBottom, maxBottom} = calcDragLimits();
+                    bounds.maxLeft = maxLeft;
+                    bounds.minLeft = minLeft;
+                    bounds.maxRight = maxRight;
+                    bounds.minRight = minRight;
+                    bounds.maxTop = maxTop;
+                    bounds.minTop = minTop;
+                    bounds.maxBottom = maxBottom;
+                    bounds.minBottom = minBottom;
+                }
+
+                moveVertically(value);
+            }
+        );
+
+        watch(
+            () => props.lockAspectRatio,
+            value => {
+                if (value) {
+                    data.aspectFactor = data.width / data.height;
+                } else {
+                    data.aspectFactor = undefined;
+                }
+            }
+        );
+
         return () => {
-            const {classNameActive, classNameDragging, classNameDraggable, draggable} = props;
+            const {classNameActive, classNameDragging, classNameDraggable, draggable, className} = props;
             const {enabled, dragging} = data;
             return (
                 <div
@@ -418,13 +509,14 @@ export default defineComponent({
                     class={{
                         [classNameActive]: enabled,
                         [classNameDragging]: dragging,
-                        [classNameDraggable]: draggable
+                        [classNameDraggable]: draggable,
+                        [className]: className
                     }}
                     style={styleRef.value}
                     onMousedown={elementMouseDown}
                     onTouchstart={elementTouchDown}
                 >
-                    {slots.default ? slots.default() : 'foo'}
+                    {slots.default ? slots.default() : 'none'}
                 </div>
             );
         };

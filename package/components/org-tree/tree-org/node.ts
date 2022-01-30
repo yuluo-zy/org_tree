@@ -56,7 +56,7 @@ export const renderLabel = (props: any, data: any, context: any, root: boolean) 
 
     const childNodes = [];
     if (context.slots.default) {
-        childNodes.push(context.slots.default({node: data}));
+        childNodes.push(context.slots.default(data));
     } else if (typeof renderContent === 'function') {
         const vnode = renderContent(data);
         vnode && childNodes.push(vnode);

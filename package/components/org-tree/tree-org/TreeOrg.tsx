@@ -42,6 +42,13 @@ export default defineComponent({
         const container = ref();
         const treeOrg = ref();
         const data = reactive({
+            keys: {
+                id: 'id',
+                pid: 'pid',
+                label: 'label',
+                expand: 'expand',
+                children: 'children'
+            },
             scale: 1,
             expanded: false,
             left: 0,
@@ -262,9 +269,14 @@ export default defineComponent({
             }
         };
 
-        // const slots = {
-        //     default: () => <div>A</div>
-        // };
+        const slots = {
+            default: (node: any) => [
+                <div class="tree-org-node__text">
+                    <span>{node.label}</span>
+                </div>
+            ],
+            expand: (node: any) => [<span class="tree-org-node__expand-btn">{node}</span>]
+        };
 
         const handleExpand = (e: any, data: any) => {
             e.stopPropagation();
@@ -292,44 +304,39 @@ export default defineComponent({
                         <OrgDraggable
                             x={data.left}
                             y={data.top}
-                            onDrag={onDrag}
-                            // onDragend={onDragStop}
+                            on-dragging={onDrag}
+                            on-dragstop={onDragStop}
                             draggable={props.draggable}
                             drag-cancel={dragCancel.value}
                             class={{dragging: data.autoDragging}}
                         >
-                            {/*class={{horizontal: props.horizontal, collapsable: props.collapsable}}*/}
-                            <div ref="tree-item" class="tree-org">
-                                <TreeOrgNode v-nodedrag_l_t={nodeargs} data={props.data} on-expand={handleExpand} on-node-click={handleExpand}>
-                                    {/*:props="keys"*/}
-                                    {/*:horizontal="horizontal"*/}
-                                    {/*:label-style="labelStyle"*/}
-                                    {/*:collapsable="collapsable"*/}
-                                    {/*:render-content="renderContent"*/}
-                                    {/*:label-class-name="labelClassName"*/}
-                                    {/*v-nodedrag.l.t="nodeargs"*/}
-
-                                    {/*@on-node-dblclick="handleDblclick"*/}
-                                    {/*@on-node-mouseenter="nodeMouseenter"*/}
-                                    {/*@on-node-mouseleave="nodeMouseleave"*/}
-                                    {/*@on-node-contextmenu="nodeContextmenu"*/}
-                                    {/*@on-node-focus="(e, data) => { $emit('on-node-focus', e, data)}"*/}
-                                    {/*@on-node-blur="handleBlur"*/}
-
-                                    {/*    <template slot-scope="{node}">*/}
-                                    {/*        <slot :node="node">*/}
-                                    {/*        <div class="tree-org-node__text">*/}
-                                    {/*            <span>{{node[keys.label]}}</span>*/}
-                                    {/*        </div>*/}
-                                    {/*    </slot>*/}
-                                    {/*</template>*/}
-                                    {/*    <template v-slot:expand="{node}">*/}
-                                    {/*        <slot name="expand" :node="node">*/}
-                                    {/*        <span class="tree-org-node__expand-btn"></span>*/}
-                                    {/*    </slot>*/}
-                                    {/*</template>*/}
-                                    <p>jjjj</p>
-                                </TreeOrgNode>
+                            {/*<div*/}
+                            {/*    ref="tree-item"*/}
+                            {/*    class={{*/}
+                            {/*        'tree-org': true,*/}
+                            {/*        horizontal: props.horizontal,*/}
+                            {/*        collapsable: props.collapsable*/}
+                            {/*    }}*/}
+                            {/*>*/}
+                            {/*    <TreeOrgNode v-nodedrag_l_t={nodeargs} data={props.data} on-expand={handleExpand} on-node-click={handleExpand}>*/}
+                            {/*        /!* :props="keys"*!/*/}
+                            {/*        /!* :horizontal="horizontal"*!/*/}
+                            {/*        /!* :label-style="labelStyle"*!/*/}
+                            {/*        /!*:collapsable="collapsable"*!/*/}
+                            {/*        /!*:render-content="renderContent"*!/*/}
+                            {/*        /!*:label-class-name="labelClassName"*!/*/}
+                            {/*        /!*v-nodedrag.l.t="nodeargs"*!/*/}
+                            {/*        /!*@on-node-dblclick="handleDblclick"*!/*/}
+                            {/*        /!*@on-node-mouseenter="nodeMouseenter"*!/*/}
+                            {/*        /!*@on-node-mouseleave="nodeMouseleave"*!/*/}
+                            {/*        /!*@on-node-contextmenu="nodeContextmenu"*!/*/}
+                            {/*        /!*@on-node-focus="(e, data) => { $emit('on-node-focus', e, data)}"*!/*/}
+                            {/*        /!*@on-node-blur="handleBlur"*!/*/}
+                            {/*        {slots}*/}
+                            {/*    </TreeOrgNode>*/}
+                            {/*</div>*/}
+                            <div>
+                                <p>kljhlkjj</p>
                             </div>
                         </OrgDraggable>
                     </div>

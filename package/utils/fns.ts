@@ -15,12 +15,12 @@ export function getSize(el: Element) {
     return [parseInt(String(rect.width)), parseInt(String(rect.height))];
 }
 
-export function restrictToBounds(value: number, min: number | null, max: number | null): number {
-    if (min !== null && value < min) {
+export function restrictToBounds(value: number, min: number, max: number): number {
+    if (value < min) {
         return min;
     }
 
-    if (max !== null && max < value) {
+    if (max < value) {
         return max;
     }
 
