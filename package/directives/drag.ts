@@ -93,7 +93,7 @@ const addChildNode = function (node: any, context: any) {
     }
 };
 export default {
-    beforeMount(el: any, binding: DirectiveBinding, vnode: VNode) {
+    beforeMount(el: any, binding: DirectiveBinding) {
         const {modifiers, value} = binding;
         const {l, t} = modifiers;
         const {drag, node, handleStart, handleMove, handleEnd} = value;

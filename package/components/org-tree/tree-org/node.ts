@@ -126,35 +126,35 @@ export const renderLabel = (props: any, data: any, context: any, root: boolean) 
                     on: NODEEVENTS
                 },
                 childNodes
-            ),
-            h('textarea', {
-                class: 'tree-org-node__textarea',
-                directives: [
-                    {
-                        name: 'show',
-                        value: data.focused
-                    },
-                    {
-                        name: 'focus',
-                        value: data.focused
-                    }
-                ],
-                domProps: {
-                    placeholder: '请输入节点名称',
-                    value: data['label']
-                },
-                on: {
-                    focus: (e: any) => focusHandler && focusHandler(e, data),
-                    input: (e: any) => {
-                        data['label'] = e.target.value;
-                    },
-                    blur: (e: any) => {
-                        data.focused = false;
-                        blurHandler && blurHandler(e, data);
-                    },
-                    click: (e: any) => e.stopPropagation()
-                }
-            })
+            )
+            // h('textarea', {
+            //     class: 'tree-org-node__textarea',
+            //     directives: [
+            //         {
+            //             name: 'show',
+            //             value: data.focused
+            //         },
+            //         {
+            //             name: 'focus',
+            //             value: data.focused
+            //         }
+            //     ],
+            //     domProps: {
+            //         placeholder: '请输入节点名称',
+            //         value: data['label']
+            //     },
+            //     on: {
+            //         focus: (e: any) => focusHandler && focusHandler(e, data),
+            //         input: (e: any) => {
+            //             data['label'] = e.target.value;
+            //         },
+            //         blur: (e: any) => {
+            //             data.focused = false;
+            //             blurHandler && blurHandler(e, data);
+            //         },
+            //         click: (e: any) => e.stopPropagation()
+            //     }
+            // })
         ]
     );
 };
